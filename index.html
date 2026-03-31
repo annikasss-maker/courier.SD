@@ -387,7 +387,7 @@ async function api(body, retries=2) {
       clearTimeout(t);
       const d = await r.json();
       setSyncStatus('ok','Conectado');
-      // Sesión expirada → forzar re-login
+      // Sesión expirada → forzar re-login solo si era admin
       if (d && !d.ok && d.msg && d.msg.includes('expirada')) {
         isAdmin=false; sessionToken=null;
         document.getElementById('btn-admin-toggle').textContent='Panel operativo';
@@ -396,8 +396,14 @@ async function api(body, retries=2) {
         switchView('courier');
         showToast('Sesión expirada. Ingresá el PIN nuevamente.');
         openPinModal();
+        return d;
       }
-      return d;
+      }
+      // Acción bloqueada sin token (ej: courier intenta rendir)
+      if (d && !d.ok && d.msg && !sessionToken) {
+        showToast(d.msg);
+        return d;
+        
     } catch(e) {
       if (i < retries) { setSyncStatus('syncing',`Reintentando (${i+1})...`); await new Promise(r=>setTimeout(r,2000)); continue; }
       setSyncStatus('error','Error de conexión');
@@ -447,7 +453,9 @@ async function addEnvelope() {
 }
 
 async function updateEnvelope(id, estado, notas) {
-  const res = await api({accion:'actualizar', token:sessionToken, id, estado, notas});
+  const body = {accion:'actualizar', id, estado, notas};
+  if (sessionToken) body.token = sessionToken;
+  const res = await api(body);
   if (res && res.ok) { showToast('Estado actualizado'); await loadData(); }
 }
 
