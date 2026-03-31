@@ -453,22 +453,30 @@ async function addEnvelope() {
 
 async function updateEnvelope(id, estado, notas) {
   const body = {accion:'actualizar', id, estado, notas};
-  if (sessionToken) body.token = sessionToken;
   const res = await api(body);
   if (res && res.ok) { showToast('Estado actualizado'); await loadData(); }
 }
 
 async function reasignarCourier(id, nuevoCourier) {
-  const body = {accion:'reasignar', id, courier: nuevoCourier};
-  if (sessionToken) body.token = sessionToken;
-  const res = await api(body);
-  if (res && res.ok) { showToast(`Sobre tomado por ${nuevoCourier}`); await loadData(); }
+  const res = await api({accion:'reasignar', id, courier: nuevoCourier});
+  if (res && res.ok) {
+    showToast(`Sobre tomado por ${nuevoCourier}`);
+    await loadData();
+  }
 }
 
 async function deleteEnvelope(id) {
+  if (!isAdmin) {
+    showToast("No autorizado");
+    return;
+  }
   if (!confirm('¿Eliminar este sobre?')) return;
-  const res = await api({accion:'eliminar', token:sessionToken, id});
-  if (res && res.ok) { showToast('Sobre eliminado'); await loadData(); }
+
+  const res = await api({accion:'eliminar', token: sessionToken, id});
+  if (res && res.ok) {
+    showToast('Sobre eliminado');
+    await loadData();
+  }
 }
 
 async function marcarRendido(id) {
@@ -522,11 +530,15 @@ async function checkPin() {
   const res = await api({accion:'login', pin: val});
   if (btn) btn.disabled = false;
   if (res && res.ok && res.token) {
-    isAdmin=true; sessionToken=res.token; closePinModal();
-    document.getElementById('btn-admin-toggle').textContent='Salir del panel';
-    document.getElementById('btn-admin-toggle').classList.add('is-admin');
-    document.querySelectorAll('.admin-only').forEach(el=>el.style.display='');
-    switchView('admin'); loadData();
+  isAdmin = true;
+  sessionToken = res.token;
+  closePinModal();
+  document.getElementById('btn-admin-toggle').textContent = 'Salir del panel';
+  document.getElementById('btn-admin-toggle').classList.add('is-admin');
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+  switchView('admin');
+  loadData();
+}
   } else {
     document.getElementById('pin-error').textContent='PIN incorrecto.';
     document.getElementById('pin-input').value='';
