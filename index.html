@@ -462,6 +462,22 @@ async function loadData() {
 
   showLoading(!cached);
 
+async function loadData() {
+
+  // Mostrar datos cacheados inmediatamente
+  const cached = localStorage.getItem('envelopes_cache');
+
+  if (cached) {
+    envelopes = JSON.parse(cached);
+
+    renderAdminTable();
+    renderStats();
+    renderLog();
+    renderCourierView();
+  }
+
+  showLoading(!cached);
+
   try {
 
     const body = isAdmin
@@ -471,6 +487,7 @@ async function loadData() {
     const res = await api(body);
 
     if (res && res.ok) {
+
       envelopes = res.sobres || [];
 
       localStorage.setItem(
@@ -494,7 +511,7 @@ async function loadData() {
     showLoading(false);
 
   }
-} 
+}
 
 async function addEnvelope() {
   const nombre    = document.getElementById('inp-name').value.trim();
