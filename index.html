@@ -16,7 +16,6 @@
   --red: #B42318; --red-bg: #FEE4E2; --red-text: #912018;
   --blue: #1849A9; --blue-bg: #EFF4FF;
   --purple: #3C3489; --purple-bg: #F0EDF8;
-  --gray: #6B6860; --gray-bg: #F0EFEC;
   --radius: 10px; --radius-sm: 6px;
 }
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; }
@@ -70,8 +69,6 @@ tr:last-child td { border-bottom: none; }
 .badge-failed     { background: var(--red-bg);   color: var(--red-text); }
 .badge-rescheduled{ background: var(--blue-bg);  color: var(--blue); }
 .badge-rendido    { background: var(--purple-bg); color: var(--purple); }
-.badge-noanswer   { background: var(--gray-bg);  color: var(--gray); }
-.badge-pendingsig { background: var(--amber-bg); color: var(--amber-text); }
 .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
 .btn-sm { height: 30px; padding: 0 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: transparent; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--text-2); cursor: pointer; transition: all 0.12s; }
 .btn-sm:hover { background: var(--surface2); }
@@ -83,10 +80,6 @@ tr:last-child td { border-bottom: none; }
 .btn-sm.reschedule:hover { background: var(--blue-bg); }
 .btn-sm.rendido   { border-color: var(--purple); color: var(--purple); }
 .btn-sm.rendido:hover { background: var(--purple-bg); }
-.btn-sm.no-answer { border-color: #6B6860; color: #6B6860; }
-.btn-sm.no-answer:hover { background: var(--surface2); }
-.btn-sm.pending-sig { border-color: #92500A; color: #92500A; }
-.btn-sm.pending-sig:hover { background: var(--amber-bg); }
 .btn-sm.del { color: var(--text-3); font-size: 16px; padding: 0 8px; border-color: transparent; }
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
 .modal-overlay.open { display: flex; }
@@ -117,8 +110,6 @@ tr:last-child td { border-bottom: none; }
 .envelope-card.No-entregado { border-left-color: var(--red); }
 .envelope-card.Reagendado   { border-left-color: var(--blue); }
 .envelope-card.Rendido      { border-left-color: var(--purple); }
-.envelope-card.No-contesta  { border-left-color: var(--gray); }
-.envelope-card.Pendiente-de-firma\/retiro { border-left-color: var(--amber); }
 .envelope-card.otro-courier { opacity: 0.75; }
 .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
 .card-name { font-size: 16px; font-weight: 600; }
@@ -136,10 +127,6 @@ tr:last-child td { border-bottom: none; }
 .reschedule-btn:hover, .reschedule-btn.active { background: var(--blue);   color: #fff; }
 .take-btn       { border-color: var(--amber);  color: var(--amber); }
 .take-btn:hover { background: var(--amber-bg); }
-.no-answer-btn  { border-color: #6B6860; color: #6B6860; }
-.no-answer-btn:hover, .no-answer-btn.active { background: #6B6860; color: #fff; }
-.pending-sig-btn { border-color: var(--amber); color: var(--amber); }
-.pending-sig-btn:hover, .pending-sig-btn.active { background: var(--amber); color: #fff; }
 .card-timestamp { font-size: 11px; color: var(--text-3); font-family: 'DM Mono', monospace; margin-top: 8px; }
 .no-assignments { text-align: center; padding: 48px 24px; color: var(--text-3); font-size: 14px; background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); }
 .courier-header { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
@@ -203,6 +190,15 @@ tr:last-child td { border-bottom: none; }
     <div class="stat-card"><div class="stat-label">Con novedad</div><div class="stat-value red" id="stat-issues">—</div></div>
   </div>
 
+  <p class="section-title">Couriers activos</p>
+  <div class="courier-mgmt">
+    <div class="courier-list" id="courier-tag-list"></div>
+    <div class="courier-add-row">
+      <input type="text" id="inp-new-courier" placeholder="Nombre del courier temporal">
+      <button onclick="addTempCourier()">+ Agregar</button>
+    </div>
+  </div>
+
   <p class="section-title">Agregar sobre</p>
   <div class="add-form">
     <div class="form-row">
@@ -239,15 +235,6 @@ tr:last-child td { border-bottom: none; }
       </div>
     </div>
  </div> 
-
-  <p class="section-title">Couriers activos</p>
-  <div class="courier-mgmt">
-    <div class="courier-list" id="courier-tag-list"></div>
-    <div class="courier-add-row">
-      <input type="text" id="inp-new-courier" placeholder="Nombre del courier temporal">
-      <button onclick="addTempCourier()">+ Agregar</button>
-    </div>
-  </div> 
 
   <div class="toolbar">
     <p class="section-title" style="margin:0">Sobres del día</p>
@@ -297,10 +284,6 @@ tr:last-child td { border-bottom: none; }
     <div class="modal-date-row" id="modal-date-row">
       <label>Fecha para volver a contactar / enviar</label>
       <input type="date" id="modal-date">
-      <div id="modal-time-row" style="margin-top:8px;display:none">
-        <label style="display:block;font-size:11px;color:var(--text-3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px">Horario</label>
-        <input type="time" id="modal-time" style="width:100%;height:40px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--bg);outline:none;">
-      </div>
     </div>
     <textarea id="modal-notes" placeholder="Comentario opcional..."></textarea>
     <div class="modal-btns">
@@ -331,7 +314,7 @@ tr:last-child td { border-bottom: none; }
 
 <script>
 const API_URL   = 'https://script.google.com/macros/s/AKfycbxWG2qYIvOchpBHuxEwItindWMWa5LaxHxHhTPuaBKTWTjzrdY1kiIW7kdGxOfTi2Z5Nw/exec';
-const BASE_COURIERS = ['José', 'Ezequiel'];
+const BASE_COURIERS = ['José', 'Ezequiel','Pablo'];
 
 let envelopes = [], pendingAction = null, isAdmin = false, sessionToken = null;
 
@@ -413,7 +396,7 @@ async function api(body, retries=2) {
   for (let i=0; i<=retries; i++) {
     try {
       const ctrl = new AbortController();
-      const t = setTimeout(()=>ctrl.abort(), 12000);
+      const t = setTimeout(()=>ctrl.abort(), 25000);
       const r = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(body), signal:ctrl.signal });
       clearTimeout(t);
       const d = await r.json();
@@ -448,69 +431,21 @@ async function api(body, retries=2) {
 }
 
 async function loadData() {
-
-  // Mostrar datos cacheados inmediatamente
-  const cached = localStorage.getItem('envelopes_cache');
-
-  if (cached) {
-    envelopes = JSON.parse(cached);
-    renderAdminTable();
-    renderStats();
-    renderLog();
-    renderCourierView();
-  }
-
-  showLoading(!cached);
-
-async function loadData() {
-
-  // Mostrar datos cacheados inmediatamente
-  const cached = localStorage.getItem('envelopes_cache');
-
-  if (cached) {
-    envelopes = JSON.parse(cached);
-
-    renderAdminTable();
-    renderStats();
-    renderLog();
-    renderCourierView();
-  }
-
-  showLoading(!cached);
-
+  showLoading(true);
   try {
-
-    const body = isAdmin
-      ? { accion:'getAll', token: sessionToken }
-      : { accion:'getAll' };
-
+    await loadCouriers();        // ← agregá esta línea
+    populateCourierSelects();    // ← y esta
+    renderCourierTags();       
+    const body = isAdmin ? {accion:'getAll', token: sessionToken} : {accion:'getAll'};
     const res = await api(body);
-
     if (res && res.ok) {
-
-      envelopes = res.sobres || [];
-
-      localStorage.setItem(
-        'envelopes_cache',
-        JSON.stringify(envelopes)
-      );
-
+      envelopes = res.sobres||[];
       renderAdminTable();
       renderStats();
       renderLog();
       renderCourierView();
     }
-
-  } catch(err) {
-
-    console.error(err);
-    showToast('Error cargando datos');
-
-  } finally {
-
-    showLoading(false);
-
-  }
+  } finally { showLoading(false); }
 }
 
 async function addEnvelope() {
@@ -523,97 +458,26 @@ async function addEnvelope() {
   const franja    = document.getElementById('inp-franja').value;
   const notasOp   = document.getElementById('inp-notasop').value.trim();
   const courier   = document.getElementById('inp-courier').value;
-
-  if (!nombre || !ci) {
-    showToast('El nombre y CI son obligatorios.');
-    return;
-  }
-
+  if (!nombre||!ci) { showToast('El nombre y CI son obligatorios.'); return; }
   const btn = document.getElementById('btn-add');
   btn.disabled = true;
-
-  const body = {
-    accion: 'agregar',
-    token: sessionToken,
-    nombre,
-    ci,
-    telefono,
-    ubicacion,
-    tipodoc,
-    oficial,
-    franja,
-    notasOp,
-    courier
-  };
-
-  const res = await api(body);
-
+  const res = await api({accion:'agregar', token:sessionToken, nombre, ci, telefono, ubicacion, tipodoc, oficial, franja, notasOp, courier});
   btn.disabled = false;
-
   if (res && res.ok) {
-
-    // Crear objeto local
-    const nuevoEnvelope = {
-      id: res.id || Date.now(), // usar ID del servidor si viene
-      nombre,
-      ci,
-      telefono,
-      ubicacion,
-      tipodoc,
-      oficial,
-      franja,
-      notasOp,
-      courier,
-      estado: 'Pendiente',
-      notasCourier: '',
-      actualizadoA: new Date().toLocaleTimeString('es-PY', {
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    };
-
-    // Insertar en array local
-    envelopes.unshift(nuevoEnvelope);
-
-    // Limpiar formulario
-    ['inp-name','inp-ci','inp-phone','inp-ubicacion','inp-notasop']
-      .forEach(id => document.getElementById(id).value = '');
-
-    document.getElementById('inp-tipodoc').value = 'Legajos de TC';
-    document.getElementById('inp-franja').value = '';
-
-    // Re-renderizar
-    renderAdminTable();
-    renderStats();
-    renderLog();
-    renderCourierView();
-
+    ['inp-name','inp-ci','inp-phone','inp-ubicacion','inp-notasop'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('inp-tipodoc').value='Legajos de TC';
+    document.getElementById('inp-franja').value='';
     showToast('Sobre agregado correctamente');
+    await loadData();
   }
-}
-
-async function marcarEntregado(id) {
-  if (!confirm('¿Confirmar entrega?')) return;
-  await updateEnvelope(id, 'delivered', '');
 }
 
 async function updateEnvelope(id, estado, notas) {
-  const estadoMap = {delivered:'Entregado', failed:'No entregado', ...};
-  const estadoFinal = estadoMap[estado] || estado;
-  const body = {accion:'actualizar', id, estado: estadoFinal, notas};
+  const body = {accion:'actualizar', id, estado, notas};
   if (sessionToken) body.token = sessionToken;
+  console.log('sessionToken:', sessionToken, '| body:', JSON.stringify(body));
   const res = await api(body);
-  if (res && res.ok) {
-    // Actualizá localmente en vez de volver a cargar todo
-    const env = envelopes.find(e => e.id === id);
-    if (env) {
-      env.estado = estadoFinal;
-      env.notasCourier = notas;
-      env.actualizadoA = new Date().toLocaleTimeString('es-PY', {hour:'2-digit', minute:'2-digit'});
-    }
-    renderAdminTable(); renderStats(); renderLog(); renderCourierView();
-    showToast('Estado actualizado');
-  }
+  if (res && res.ok) { showToast('Estado actualizado'); await loadData(); }
 }
 
 async function reasignarCourier(id, nuevoCourier) {
@@ -637,47 +501,37 @@ async function marcarRendido(id) {
 
 function openModal(id, action) {
   pendingAction = {id, action};
-  const titles = {delivered:'Confirmar entrega', failed:'Registrar no entrega', rescheduled:'Reagendar envío', noanswer:'No contesta', pendingsig:'Pendiente de firma/retiro'};
-  const subs   = {delivered:'', failed:'¿Por qué no se pudo entregar?', rescheduled:'Elegí la fecha y horario para volver a intentar.', noanswer:'Comentario opcional.', pendingsig:'Comentario opcional.'};
+  const titles = {delivered:'Confirmar entrega', failed:'Registrar no entrega', rescheduled:'Reagendar envío'};
+  const subs   = {delivered:'Comentario opcional.', failed:'¿Por qué no se pudo entregar?', rescheduled:'Elegí la fecha para volver a intentar.'};
   document.getElementById('modal-title').textContent    = titles[action];
   document.getElementById('modal-subtitle').textContent = subs[action];
   document.getElementById('modal-notes').value = '';
-  // Mostrar/ocultar notas según acción
-  const notesEl = document.getElementById('modal-notes');
-  notesEl.style.display = (action === 'delivered') ? 'none' : 'block';
   // Mostrar/ocultar campo de fecha según acción
   const dateRow = document.getElementById('modal-date-row');
-  const timeRow = document.getElementById('modal-time-row');
   if (action === 'rescheduled') {
     dateRow.classList.add('visible');
-    timeRow.style.display = 'block';
     // Default: mañana
     const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
     document.getElementById('modal-date').value = tomorrow.toISOString().slice(0,10);
-    document.getElementById('modal-time').value = '';
   } else {
     dateRow.classList.remove('visible');
-    timeRow.style.display = 'none';
     document.getElementById('modal-date').value = '';
-    document.getElementById('modal-time').value = '';
   }
   document.getElementById('modal').classList.add('open');
-  if (action !== 'delivered') setTimeout(()=>document.getElementById('modal-notes').focus(), 100);
+  setTimeout(()=>document.getElementById('modal-notes').focus(), 100);
 }
 function closeModal() { document.getElementById('modal').classList.remove('open'); pendingAction=null; }
 async function confirmAction() {
   if (!pendingAction) return;
   const {id, action} = pendingAction;
-  let notes = action === 'delivered' ? '' : document.getElementById('modal-notes').value.trim();
-  // Si es reagendar, anteponer la fecha y hora elegidas a las notas
+  let notes = document.getElementById('modal-notes').value.trim();
+  // Si es reagendar, anteponer la fecha elegida a las notas
   if (action === 'rescheduled') {
     const dateVal = document.getElementById('modal-date').value;
-    const timeVal = document.getElementById('modal-time').value;
     if (dateVal) {
       const [y,m,d] = dateVal.split('-');
       const dateStr = `${d}/${m}/${y}`;
-      const timeStr = timeVal ? ` a las ${timeVal}` : '';
-      notes = notes ? `📅 Volver a intentar: ${dateStr}${timeStr} — ${notes}` : `📅 Volver a intentar: ${dateStr}${timeStr}`;
+      notes = notes ? `📅 Volver a intentar: ${dateStr} — ${notes}` : `📅 Volver a intentar: ${dateStr}`;
     }
   }
   document.getElementById('modal-confirm').disabled = true;
@@ -723,10 +577,10 @@ async function checkPin() {
 }
 
 function statusKey(e) {
-  return {'Entregado':'delivered','No entregado':'failed','Reagendado':'rescheduled','Pendiente':'pending','Rendido':'rendido','No contesta':'noanswer','Pendiente de firma/retiro':'pendingsig'}[e]||'pending';
+  return {'Entregado':'delivered','No entregado':'failed','Reagendado':'rescheduled','Pendiente':'pending','Rendido':'rendido'}[e]||'pending';
 }
 function badgeHTML(sk) {
-  const m = {pending:['badge-pending','● Pendiente'],delivered:['badge-delivered','✓ Entregado'],failed:['badge-failed','✗ No entregado'],rescheduled:['badge-rescheduled','↷ Reagendado'],rendido:['badge-rendido','↩ Rendido'],noanswer:['badge-noanswer','No contesta'],pendingsig:['badge-pendingsig','Pdte. firma/retiro']};
+  const m = {pending:['badge-pending','● Pendiente'],delivered:['badge-delivered','✓ Entregado'],failed:['badge-failed','✗ No entregado'],rescheduled:['badge-rescheduled','↷ Reagendado'],rendido:['badge-rendido','↩ Rendido']};
   const [cls,lbl] = m[sk]||m.pending;
   return `<span class="badge ${cls}">${lbl}</span>`;
 }
@@ -751,11 +605,9 @@ function renderAdminTable() {
       <td style="font-size:12px;color:var(--text-2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.notasCourier||'—'}</td>
       <td rowspan="2" style="vertical-align:middle;border-left:1px solid var(--border-soft)">
         <div class="action-btns">
-          ${e.estado!=='Entregado'    ?`<button class="btn-sm deliver"    onclick="marcarEntregado('${e.id}')">✓ Entregado</button>`:''}
+          ${e.estado!=='Entregado'    ?`<button class="btn-sm deliver"    onclick="openModal('${e.id}','delivered')">✓ Entregado</button>`:''}
           ${e.estado!=='No entregado' ?`<button class="btn-sm fail"       onclick="openModal('${e.id}','failed')">✗ No entregado</button>`:''}
           ${e.estado!=='Reagendado'   ?`<button class="btn-sm reschedule" onclick="openModal('${e.id}','rescheduled')">↷ Reagendar</button>`:''}
-          ${e.estado!=='No contesta'  ?`<button class="btn-sm no-answer"  onclick="openModal('${e.id}','noanswer')">No contesta</button>`:''}
-          ${e.estado!=='Pendiente de firma/retiro'?`<button class="btn-sm pending-sig" onclick="openModal('${e.id}','pendingsig')">Pdte. firma</button>`:''}
           ${e.estado!=='Rendido'      ?`<button class="btn-sm rendido"    onclick="marcarRendido('${e.id}')">↩ Rendido</button>`:''}
           <button class="btn-sm del" onclick="deleteEnvelope('${e.id}')" title="Eliminar">×</button>
         </div>
@@ -781,11 +633,11 @@ function renderStats() {
   document.getElementById('stat-total').textContent     = envelopes.length;
   document.getElementById('stat-delivered').textContent = envelopes.filter(e=>e.estado==='Entregado').length;
   document.getElementById('stat-pending').textContent   = envelopes.filter(e=>e.estado==='Pendiente').length;
-  document.getElementById('stat-issues').textContent    = envelopes.filter(e=>['No entregado','Reagendado','No contesta','Pendiente de firma/retiro'].includes(e.estado)).length;
+  document.getElementById('stat-issues').textContent    = envelopes.filter(e=>e.estado==='No entregado'||e.estado==='Reagendado').length;
 }
 
 function sortEnvelopes(list) {
-  const order = { 'Pendiente':0, 'No entregado':1, 'Reagendado':2, 'No contesta':3, 'Pendiente de firma/retiro':4, 'Entregado':5, 'Rendido':6 };
+  const order = { 'Pendiente':0, 'No entregado':1, 'Reagendado':2, 'Entregado':3, 'Rendido':4 };
   return [...list].sort((a,b) => (order[a.estado]??2) - (order[b.estado]??2));
 }
 
@@ -818,127 +670,38 @@ function renderCourierView() {
 }
 
 function cardHTML(e, currentCourier, esOtro) {
-
-  const ubic = e.ubicacion
-    ? (
-        e.ubicacion.startsWith('http')
-          ? `<a href="${e.ubicacion}" target="_blank" style="color:var(--blue)">Ver ubicación en mapa</a>`
-          : e.ubicacion
-      )
-    : null;
-
-  const franjaIcon = {
-    'Mañana':'🌅',
-    'Tarde':'☀️',
-  };
-
-  const hoy = new Date().toLocaleDateString('es-PY',{
-    day:'2-digit',
-    month:'2-digit',
-    year:'numeric'
-  });
-
+  const ubic = e.ubicacion ? (e.ubicacion.startsWith('http') ? `<a href="${e.ubicacion}" target="_blank" style="color:var(--blue)">Ver ubicación en mapa</a>` : e.ubicacion) : null;
+  const franjaIcon = { 'Mañana':'🌅', 'Tarde':'☀️', 'Noche':'🌙' };
+  const hoy = new Date().toLocaleDateString('es-PY',{day:'2-digit',month:'2-digit',year:'numeric'});
   const esAnterior = e.fecha && e.fecha !== hoy;
-
-  return `
-  <div class="envelope-card ${e.estado.replace(/[\s\/]+/g,'-')} ${esOtro?'otro-courier':''}">
-
+  return `<div class="envelope-card ${e.estado.replace(' ','-')} ${esOtro?'otro-courier':''}">
     <div class="card-top">
       <div>
         <div class="card-name">${e.nombre}</div>
         <div class="card-ci">CI: ${e.ci}</div>
-
-        ${
-          esAnterior
-            ? `<span style="font-size:10px;background:var(--red-bg);color:var(--red);padding:1px 6px;border-radius:999px;margin-top:2px;display:inline-block">
-                 📅 Pendiente desde ${e.fecha}
-               </span>`
-            : ''
-        }
+        ${esAnterior?`<span style="font-size:10px;background:var(--red-bg);color:var(--red);padding:1px 6px;border-radius:999px;margin-top:2px;display:inline-block">📅 Pendiente desde ${e.fecha}</span>`:''}
       </div>
-
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
         ${badgeHTML(statusKey(e.estado))}
-
-        ${
-          e.franja
-            ? `<span style="font-size:11px;background:var(--amber-bg);color:var(--amber-text);padding:2px 8px;border-radius:999px;font-weight:500">
-                 ${franjaIcon[e.franja]||''} ${e.franja}
-               </span>`
-            : ''
-        }
+        ${e.franja?`<span style="font-size:11px;background:var(--amber-bg);color:var(--amber-text);padding:2px 8px;border-radius:999px;font-weight:500">${franjaIcon[e.franja]||''} ${e.franja}</span>`:''}
       </div>
     </div>
-
     <div class="card-info">
-      ${e.telefono ? '📞 '+e.telefono : 'Sin teléfono registrado'}
-      ${ubic ? '<br>📍 '+ubic : ''}
+      ${e.telefono?'📞 '+e.telefono:'Sin teléfono registrado'}
+      ${ubic?'<br>📍 '+ubic:''}
     </div>
-
-    ${
-      e.notasOp
-        ? `<div class="card-notes" style="background:var(--blue-bg);color:var(--blue);border-left:3px solid var(--blue)">
-             📋 ${e.notasOp}
-           </div>`
-        : ''
-    }
-
-    ${
-      esOtro
-        ? `<div class="card-assigned">
-             🏍️ Asignado a: ${e.courier}
-           </div>`
-        : ''
-    }
-
-    ${
-      e.notasCourier
-        ? `<div class="card-notes">
-             💬 ${e.notasCourier}
-           </div>`
-        : ''
-    }
-
+    ${e.notasOp?`<div class="card-notes" style="background:var(--blue-bg);color:var(--blue);border-left:3px solid var(--blue)">📋 ${e.notasOp}</div>`:''}
+    ${esOtro ? `<div class="card-assigned">🚚 Asignado a: ${e.courier}</div>` : ''}
+    ${e.notasCourier?`<div class="card-notes">💬 ${e.notasCourier}</div>`:''}
     <div class="card-btns">
-
-      ${
-        esOtro
-
-        ? `<button class="card-btn take-btn"
-             onclick="tomarSobre('${e.id}','${currentCourier}')">
-             Tomar este sobre
-           </button>`
-
-        : `
-          <button class="card-btn deliver-btn ${e.estado==='Entregado'?'active':''}"
-            onclick="marcarEntregado('${e.id}')">
-            ✓ Entregado
-          </button>
-
-          <button class="card-btn fail-btn ${e.estado==='No entregado'?'active':''}"
-            onclick="openModal('${e.id}','failed')">
-            ✗ No pude entregar
-          </button>
-
-          <button class="card-btn reschedule-btn ${e.estado==='Reagendado'?'active':''}"
-            onclick="openModal('${e.id}','rescheduled')">
-            ↷ Reagendar
-          </button>
-
-          <button class="card-btn no-answer-btn ${e.estado==='No contesta'?'active':''}"
-            onclick="openModal('${e.id}','noanswer')">
-            No contesta
-          </button>
-
-          <button class="card-btn pending-sig-btn ${e.estado==='Pendiente de firma/retiro'?'active':''}"
-            onclick="openModal('${e.id}','pendingsig')">
-            Pdte. firma/retiro
-          </button>
-        `
+      ${esOtro
+        ? `<button class="card-btn take-btn" onclick="tomarSobre('${e.id}','${currentCourier}')">Tomar este sobre</button>`
+        : `<button class="card-btn deliver-btn ${e.estado==='Entregado'?'active':''}" onclick="openModal('${e.id}','delivered')">✓ Entregado</button>
+           <button class="card-btn fail-btn    ${e.estado==='No entregado'?'active':''}" onclick="openModal('${e.id}','failed')">✗ No pude entregar</button>
+           <button class="card-btn reschedule-btn ${e.estado==='Reagendado'?'active':''}" onclick="openModal('${e.id}','rescheduled')">↷ Reagendar</button>`
       }
-
     </div>
-
+    ${e.actualizadoA?`<div class="card-timestamp">Actualizado: ${e.actualizadoA}</div>`:''}
   </div>`;
 }
 
